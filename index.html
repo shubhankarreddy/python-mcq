@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Python MCQ - Analyst Skills Assessment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@600;700&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue:#306998; --blue-dark:#1f4d75; --yellow:#ffd43b; --yellow-soft:#fff6c7;
+      --green:#10b981; --red:#ef4444; --ink:#1f2937; --muted:#64748b;
+      --surface:#ffffff; --bg:#f5f7fb; --border:#d9e2ef; --code:#eef4fb;
+      --shadow:0 2px 8px rgba(15,23,42,.08); --shadow-md:0 8px 24px rgba(15,23,42,.12);
+      --radius:10px; --font-body:'DM Sans',sans-serif; --font-head:'Bitter',serif; --font-mono:'JetBrains Mono',monospace;
+    }
+    [data-theme="dark"] {
+      --surface:#172033; --bg:#0b1220; --border:#2b3a55; --ink:#f8fafc; --muted:#a7b4c8;
+      --code:#101827; --yellow-soft:#332b07; --blue-dark:#74a8d4;
+    }
+    body { min-height:100vh; background:var(--bg); color:var(--ink); font-family:var(--font-body); font-size:15px; line-height:1.6; }
+    .topbar { min-height:58px; padding:0 24px; background:linear-gradient(90deg,#1f4d75,#2f7f68); color:#fff; display:flex; align-items:center; justify-content:space-between; gap:16px; position:sticky; top:0; z-index:10; box-shadow:0 2px 10px rgba(15,23,42,.25); }
+    .brand { display:flex; align-items:center; gap:10px; font-family:var(--font-head); font-weight:700; }
+    .logo { width:34px; height:34px; border-radius:7px; display:grid; place-items:center; background:var(--yellow); color:#1f2937; font-family:var(--font-mono); font-weight:800; }
+    .top-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .pill { background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.14); padding:4px 10px; border-radius:999px; font-size:.82rem; }
+    .theme-btn { border:0; background:rgba(255,255,255,.14); color:#fff; padding:7px 11px; border-radius:7px; font-weight:700; cursor:pointer; }
+    .level-bar { display:flex; justify-content:center; gap:12px; padding:20px 20px 0; flex-wrap:wrap; }
+    .level-tab { background:var(--surface); color:var(--muted); border:2px solid var(--border); border-radius:10px; padding:11px 22px; min-width:178px; cursor:pointer; font-weight:800; display:flex; flex-direction:column; align-items:center; gap:2px; box-shadow:var(--shadow); }
+    .level-tab:hover, .level-tab.active { border-color:var(--blue); color:var(--blue-dark); background:linear-gradient(180deg,var(--surface),var(--yellow-soft)); }
+    [data-theme="dark"] .level-tab:hover, [data-theme="dark"] .level-tab.active { color:#ffd43b; }
+    .badge { font-family:var(--font-mono); font-size:.72rem; background:var(--code); color:var(--muted); padding:2px 8px; border-radius:999px; }
+    .level-tab.active .badge, .level-tab.done .badge { background:var(--yellow); color:#1f2937; }
+    .main { max-width:940px; margin:20px auto 0; padding:0 20px 60px; }
+    .progress-wrap, .question-card, .results { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
+    .progress-wrap { padding:16px 20px; margin-bottom:16px; }
+    .progress-head { display:flex; justify-content:space-between; gap:12px; margin-bottom:10px; }
+    .progress-label { color:var(--muted); font-size:.85rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; }
+    .progress-count { color:var(--blue-dark); font-family:var(--font-mono); font-weight:800; }
+    .bar { height:8px; border-radius:999px; background:var(--code); overflow:hidden; }
+    .bar > div { height:100%; background:linear-gradient(90deg,var(--blue),var(--yellow)); transition:width .25s; }
+    .dots { display:flex; flex-wrap:wrap; gap:5px; margin-top:12px; }
+    .dot { width:19px; height:19px; border-radius:50%; border:2px solid transparent; background:var(--border); cursor:pointer; }
+    .dot.current { border-color:var(--blue); background:var(--yellow-soft); }
+    .dot.correct { background:var(--green); } .dot.wrong { background:var(--red); } .dot.skipped { background:#f59e0b; }
+    .question-card { padding:28px; animation:fade .18s ease; }
+    @keyframes fade { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+    .q-meta { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:16px; }
+    .topic { color:var(--blue-dark); background:var(--yellow-soft); border:1px solid var(--border); border-radius:999px; padding:3px 10px; font-size:.76rem; font-weight:900; text-transform:uppercase; letter-spacing:.05em; }
+    .q-num { color:var(--muted); font-family:var(--font-mono); font-size:.82rem; }
+    .q-text { font-size:1.04rem; font-weight:700; margin-bottom:22px; }
+    code { font-family:var(--font-mono); font-size:.88em; background:var(--code); border:1px solid var(--border); padding:1px 5px; border-radius:5px; color:var(--blue-dark); }
+    .options { display:flex; flex-direction:column; gap:10px; }
+    .option { display:flex; gap:12px; align-items:flex-start; width:100%; text-align:left; padding:12px 14px; border:2px solid var(--border); background:var(--bg); color:var(--ink); border-radius:8px; cursor:pointer; font-family:var(--font-body); font-size:.94rem; line-height:1.5; }
+    .option:hover:not(:disabled) { border-color:var(--blue); background:var(--yellow-soft); }
+    .letter { flex:0 0 24px; height:24px; border-radius:50%; display:grid; place-items:center; background:var(--border); color:var(--muted); font-family:var(--font-mono); font-size:.78rem; font-weight:900; margin-top:2px; }
+    .option.correct { border-color:var(--green); background:#ecfdf5; color:#064e3b; }
+    .option.wrong { border-color:var(--red); background:#fef2f2; color:#7f1d1d; }
+    .option.correct .letter { background:var(--green); color:#fff; } .option.wrong .letter { background:var(--red); color:#fff; }
+    .option:disabled { cursor:default; }
+    .feedback { display:none; margin-top:16px; padding:14px 18px; border-radius:8px; font-size:.9rem; }
+    .feedback.show { display:block; } .feedback.good { border-left:4px solid var(--green); background:#ecfdf5; color:#166534; } .feedback.bad { border-left:4px solid var(--red); background:#fef2f2; color:#991b1b; }
+    .actions { display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap; margin-top:20px; }
+    .btn { border:2px solid transparent; border-radius:8px; padding:10px 20px; font-weight:900; cursor:pointer; font-family:var(--font-body); }
+    .btn-primary { background:var(--blue); color:#fff; } .btn-primary:hover { background:#1f4d75; }
+    .btn-secondary { background:transparent; color:var(--muted); border-color:var(--border); } .btn-secondary:hover { color:var(--blue-dark); border-color:var(--blue); }
+    .btn:disabled { opacity:.45; cursor:not-allowed; }
+    .results { display:none; text-align:center; padding:40px 28px; box-shadow:var(--shadow-md); }
+    .results.show { display:block; }
+    .score-ring { width:132px; height:132px; border-radius:50%; border:8px solid var(--green); display:flex; flex-direction:column; align-items:center; justify-content:center; margin:0 auto 20px; }
+    .score-ring.avg { border-color:#f59e0b; } .score-ring.low { border-color:var(--red); }
+    .score { font-family:var(--font-head); font-size:2.2rem; font-weight:800; color:var(--blue-dark); line-height:1; }
+    .denom, .results-msg { color:var(--muted); }
+    .results-title { font-family:var(--font-head); font-size:1.55rem; margin-bottom:8px; }
+    .breakdown { display:flex; justify-content:center; gap:16px; flex-wrap:wrap; margin:24px 0; }
+    .bi { background:var(--bg); border:1px solid var(--border); border-radius:8px; min-width:90px; padding:12px 18px; }
+    .bi-num { font-family:var(--font-mono); font-size:1.4rem; font-weight:900; }
+    .bi-label { font-size:.76rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+    .topic-breakdown { max-width:650px; margin:0 auto 24px; text-align:left; }
+    .topic-row { display:flex; justify-content:space-between; gap:12px; border-bottom:1px solid var(--border); padding:8px 0; }
+    @media (max-width:640px) {
+      .topbar { padding:10px 14px; align-items:flex-start; }
+      .brand { align-items:flex-start; }
+      .pill.hide-sm { display:none; }
+      .question-card { padding:20px 16px; }
+      .level-tab { min-width:0; flex:1 1 145px; padding:9px 12px; }
+      .q-meta, .progress-head { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><div class="logo">PY</div><span>Python MCQ - Analyst Skills Assessment</span></div>
+    <div class="top-right">
+      <span class="pill hide-sm">P2 + P3 weighted at 80%</span>
+      <span class="pill" id="global-score">0 / 0</span>
+      <span class="pill">Streak <strong id="global-streak">0</strong></span>
+      <button class="theme-btn" onclick="toggleTheme()">Dark</button>
+    </div>
+  </header>
+
+  <nav class="level-bar">
+    <button class="level-tab active" id="tab-p1" onclick="switchLevel('p1')">P1 Basic <span class="badge">25 questions</span></button>
+    <button class="level-tab" id="tab-p2" onclick="switchLevel('p2')">P2 Intermediate <span class="badge">50 questions</span></button>
+    <button class="level-tab" id="tab-p3" onclick="switchLevel('p3')">P3 Advanced <span class="badge">50 questions</span></button>
+  </nav>
+
+  <main class="main">
+    <section class="progress-wrap">
+      <div class="progress-head"><span class="progress-label" id="level-label">P1 Basic</span><span class="progress-count" id="q-count">1 / 25</span></div>
+      <div class="bar"><div id="progress-bar"></div></div>
+      <div class="dots" id="progress-dots"></div>
+    </section>
+
+    <section class="question-card" id="question-card">
+      <div class="q-meta"><span class="topic" id="q-topic"></span><span class="q-num" id="q-num"></span></div>
+      <p class="q-text" id="q-text"></p>
+      <div class="options" id="options"></div>
+      <div class="feedback" id="feedback"></div>
+      <div class="actions">
+        <button class="btn btn-secondary" id="btn-skip" onclick="skipQuestion()">Skip</button>
+        <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()" disabled>Next</button>
+      </div>
+    </section>
+
+    <section class="results" id="results">
+      <div class="score-ring" id="score-ring"><div class="score" id="result-score">0</div><div class="denom" id="result-denom">/ 25</div></div>
+      <h2 class="results-title" id="results-title">Results</h2>
+      <p class="results-msg" id="results-msg"></p>
+      <div class="breakdown">
+        <div class="bi"><div class="bi-num" id="res-correct">0</div><div class="bi-label">Correct</div></div>
+        <div class="bi"><div class="bi-num" id="res-wrong">0</div><div class="bi-label">Wrong</div></div>
+        <div class="bi"><div class="bi-num" id="res-skipped">0</div><div class="bi-label">Skipped</div></div>
+      </div>
+      <div class="topic-breakdown" id="topic-breakdown"></div>
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="retryLevel()">Retry Level</button>
+        <button class="btn btn-primary" id="btn-next-level" onclick="nextLevel()">Next Level</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+const questions = {
+  p1: [
+    {topic:"Python Basics", q:"A sales analyst stores <code>units = 12</code> and <code>price = 19.5</code>. Which expression correctly calculates revenue as a numeric value?", opts:["<code>units * price</code>","<code>units + 'price'</code>","<code>'units' * price</code>","<code>str(units) + price</code>"], ans:0, explain:"Multiplication between an integer and a float returns a numeric result. The other options mix strings with numbers or use literal text."},
+    {topic:"Python Basics", q:"Which data type is best for a yes/no flag such as <code>is_active</code> in a customer extract?", opts:["<code>str</code>","<code>bool</code>","<code>list</code>","<code>float</code>"], ans:1, explain:"A boolean stores True or False and is the clearest type for yes/no flags."},
+    {topic:"Python Basics", q:"A KPI should show the remainder after dividing orders into batches of 50. Which operator gives the remainder?", opts:["<code>//</code>","<code>**</code>","<code>%</code>","<code>/</code>"], ans:2, explain:"The modulo operator <code>%</code> returns the remainder. Floor division <code>//</code> returns the quotient without the decimal part."},
+    {topic:"Control Flow", q:"You need to label sales as High when revenue is at least 100000, Medium when at least 50000, otherwise Low. Which structure fits best?", opts:["A list literal only","A lambda with no condition","A file handle","An <code>if / elif / else</code> chain"], ans:3, explain:"An <code>if / elif / else</code> chain expresses mutually exclusive business rules in priority order."},
+    {topic:"Control Flow", q:"Which loop pattern is best when you need both row position and value while checking a list of order IDs?", opts:["<code>for i, order_id in enumerate(order_ids):</code>","<code>for enumerate in order_ids:</code>","<code>while order_ids:</code> without updating state","<code>if order_ids:</code>"], ans:0, explain:"<code>enumerate</code> yields an index and the item, which is useful for row-level validation messages."},
+    {topic:"Functions & Lambda Basics", q:"A repeated margin calculation appears in many notebooks. What is the best first refactor?", opts:["Copy the formula into every cell","Put it inside a function with clear parameters","Store it only in a chart title","Convert the notebook to PDF"], ans:1, explain:"A function centralizes reusable logic and makes future corrections easier."},
+    {topic:"Functions & Lambda Basics", q:"Which lambda sorts customer dictionaries by revenue?", opts:["<code>lambda x: x</code>","<code>lambda revenue</code>","<code>lambda x: x['revenue']</code>","<code>lambda: customers['revenue']</code>"], ans:2, explain:"When used as a sort key, <code>lambda x: x['revenue']</code> returns the revenue value from each dictionary."},
+    {topic:"Lists, Tuples, Sets, Dictionaries", q:"A product hierarchy should not be accidentally changed after creation. Which built-in collection is immutable?", opts:["List","Dictionary","Set","Tuple"], ans:3, explain:"Tuples are immutable sequences. Lists, dictionaries, and sets are mutable."},
+    {topic:"Lists, Tuples, Sets, Dictionaries", q:"You need the unique customer IDs from a list that contains duplicates. Which collection is most direct?", opts:["Set","Tuple","String","Float"], ans:0, explain:"A set stores unique elements and is commonly used to remove duplicates or test membership."},
+    {topic:"Lists, Tuples, Sets, Dictionaries", q:"A dictionary may not contain a requested key. Which access pattern avoids a <code>KeyError</code> and lets you supply a default?", opts:["<code>customer['segment']</code>","<code>customer.segment</code>","<code>customer.get('segment', 'Unknown')</code>","<code>customer.pop()</code> only"], ans:2, explain:"<code>dict.get</code> returns the value when the key exists and a default when it does not."},
+    {topic:"String Handling", q:"A CSV-like string is <code>'North,Wholesale,1200'</code>. Which expression splits it into fields?", opts:["<code>','.join(text)</code>","<code>text.split(',')</code>","<code>text.strip(',')</code>","<code>text.find(',')</code>"], ans:1, explain:"<code>split(',')</code> separates a string into a list using comma as the delimiter."},
+    {topic:"String Handling", q:"You have cleaned fields <code>['North', 'Retail']</code> and need <code>'North-Retail'</code>. Which expression fits?", opts:["<code>fields.split('-')</code>","<code>fields.strip('-')</code>","<code>fields.append('-')</code>","<code>'-'.join(fields)</code>"], ans:3, explain:"<code>join</code> combines string elements using the separator placed before the method call."},
+    {topic:"String Handling", q:"A product code must contain exactly three digits. Which regex pattern is the clearest check?", opts:["<code>r'abc'</code>","<code>r'\\w+'</code>","<code>r'^\\d{3}$'</code>","<code>r'.*'</code>"], ans:2, explain:"<code>^</code> and <code>$</code> anchor the whole string, while <code>\\d{3}</code> requires exactly three digits."},
+    {topic:"File Handling", q:"When reading a CSV into dictionaries with Python's standard library, which tool is most suitable?", opts:["<code>csv.DictReader(file)</code>","<code>json.dumps(file)</code>","<code>list.sort(file)</code>","<code>re.findall(file)</code>"], ans:0, explain:"<code>csv.DictReader</code> reads rows as dictionaries keyed by column name, which is useful for tabular files."},
+    {topic:"File Handling", q:"Which function reads JSON from an already opened file object?", opts:["<code>json.loads(path)</code>","<code>csv.reader(file)</code>","<code>open(json)</code>","<code>json.load(file)</code>"], ans:3, explain:"<code>json.load</code> reads JSON from a file-like object. <code>json.loads</code> parses a JSON string."},
+    {topic:"Exception Handling", q:"A column contains occasional bad numbers like <code>'N/A'</code>. Which exception should you catch around <code>int(value)</code>?", opts:["<code>KeyError</code>","<code>ValueError</code>","<code>ImportError</code>","<code>StopIteration</code>"], ans:1, explain:"Converting a non-numeric string with <code>int</code> raises <code>ValueError</code>."},
+    {topic:"NumPy Basics", q:"Which expression creates a NumPy array from a Python list?", opts:["<code>np.frame([1, 2, 3])</code>","<code>pd.arrayframe([1, 2, 3])</code>","<code>np.array([1, 2, 3])</code>","<code>array.np([1, 2, 3])</code>"], ans:2, explain:"<code>np.array</code> creates an ndarray from list-like data."},
+    {topic:"NumPy Basics", q:"For <code>a = np.array([10, 20, 30, 40, 50])</code>, what does <code>a[1:4]</code> return?", opts:["<code>[20, 30, 40]</code>","<code>[10, 20, 30, 40]</code>","<code>[20, 30, 40, 50]</code>","Only <code>20</code>"], ans:0, explain:"Python and NumPy slices include the start index and exclude the stop index, so positions 1, 2, and 3 are returned."},
+    {topic:"NumPy Basics", q:"What does <code>np.array([1, 2, 3]) * 10</code> produce?", opts:["A syntax error","<code>[1, 2, 3, 10]</code>","The original array unchanged","<code>[10, 20, 30]</code>"], ans:3, explain:"NumPy applies scalar arithmetic element by element, producing a new vectorized result."},
+    {topic:"Pandas Basics", q:"Which pandas object is two-dimensional with labeled rows and columns?", opts:["Series","DataFrame","Tuple","Regular expression"], ans:1, explain:"A DataFrame is a two-dimensional labeled table. A Series is one-dimensional."},
+    {topic:"Pandas Basics - Reading Files", q:"Which pandas function reads a CSV file into a DataFrame?", opts:["<code>pd.open_csv(path)</code>","<code>np.read_csv(path)</code>","<code>csv.DataFrame(path)</code>","<code>pd.read_csv(path)</code>"], ans:3, explain:"<code>pd.read_csv</code> is the standard pandas function for loading CSV data into a DataFrame."},
+    {topic:"Pandas Basics - Reading Files", q:"Which pair is appropriate for reading Excel and JSON files with pandas?", opts:["<code>pd.read_excel</code> and <code>pd.read_json</code>","<code>pd.excel</code> and <code>pd.json</code>","<code>np.read_excel</code> and <code>np.read_json</code>","<code>json.read_excel</code> and <code>csv.read_json</code>"], ans:0, explain:"Pandas provides dedicated readers such as <code>read_excel</code> and <code>read_json</code> for common file formats."},
+    {topic:"Pandas Basics - Inspection", q:"Which set of methods is most useful for a quick first inspection of a new DataFrame?", opts:["<code>merge</code>, <code>concat</code>, <code>join</code>","<code>plot</code>, <code>savefig</code>, <code>show</code>","<code>head</code>, <code>info</code>, <code>describe</code>","<code>loads</code>, <code>dumps</code>, <code>route</code>"], ans:2, explain:"<code>head</code> previews rows, <code>info</code> shows structure and missingness, and <code>describe</code> summarizes numeric columns."},
+    {topic:"Pandas Basics - Selection Filtering", q:"Which expression selects positive-revenue rows and only the Region and Revenue columns?", opts:["<code>df['Revenue' > 0]</code>","<code>df.loc[df['Revenue'] > 0, ['Region', 'Revenue']]</code>","<code>df.iloc[df['Revenue'] > 0]</code>","<code>df.filter('Revenue' > 0)</code>"], ans:1, explain:"<code>.loc[row_condition, column_list]</code> is the clearest label-based way to filter rows and choose columns."},
+    {topic:"Pandas Basics - Aggregations", q:"Which expressions return total revenue and average revenue from a Revenue column?", opts:["<code>df['Revenue'].split()</code> and <code>df['Revenue'].join()</code>","<code>df['Revenue'].head()</code> and <code>df['Revenue'].tail()</code>","<code>df['Revenue'].sum()</code> and <code>df['Revenue'].mean()</code>","<code>df['Revenue'].keys()</code> and <code>df['Revenue'].values()</code>"], ans:2, explain:"<code>sum</code> and <code>mean</code> are basic pandas aggregations for totals and averages."}
+  ],
+
+  p2: [
+    {topic:"Pandas Advanced - Missing Values", q:"A revenue column has a few missing values and the distribution is skewed by very large enterprise deals. Which fill strategy is usually safer than the mean?", opts:["Fill with the median after checking business context","Fill with the maximum value","Fill with random customer names","Convert the column to text"], ans:0, explain:"The median is less sensitive to extreme values than the mean, but the business reason for missingness should still be checked."},
+    {topic:"Pandas Advanced - Missing Values", q:"Rows missing <code>customer_id</code> cannot be matched to CRM records. Which action is usually defensible before a customer-level merge?", opts:["Use <code>fillna(0)</code> for every column","Forward-fill all customer IDs","Drop or quarantine rows where the required key is missing","Convert IDs to floats"], ans:2, explain:"A missing join key can create incorrect matches. Dropping or quarantining those rows is safer than inventing IDs."},
+    {topic:"Pandas Advanced - Missing Values", q:"A daily sensor series has short gaps between valid readings. Which method can estimate values along the time trend?", opts:["<code>drop_duplicates()</code>","<code>interpolate()</code>","<code>merge()</code>","<code>crosstab()</code>"], ans:1, explain:"Interpolation estimates missing numeric values between known observations, often useful for short time-series gaps."},
+    {topic:"Pandas Advanced - GroupBy", q:"A manager wants revenue and order count by Region and Channel. Which pattern fits?", opts:["<code>df.sort_values(['Region','Channel'])</code> only","<code>df[['Region','Channel']].head()</code>","<code>df.dropna(['Region','Channel'])</code>","<code>df.groupby(['Region','Channel']).agg(revenue=('Sales','sum'), orders=('OrderID','nunique'))</code>"], ans:3, explain:"Grouping by both dimensions and aggregating named metrics returns the requested multi-level business summary."},
+    {topic:"Pandas Advanced - GroupBy", q:"After a grouped aggregation, the result has a MultiIndex but business users need flat columns. What is a common cleanup?", opts:["Use <code>reset_index()</code>","Delete the grouping columns","Convert the DataFrame to a set","Use <code>json.loads</code>"], ans:0, explain:"<code>reset_index()</code> moves index levels back into regular columns, which is easier to export and present."},
+    {topic:"Pandas Advanced - Merge Join Concat", q:"Sales rows have <code>CustomerID</code> and the customer table has one row per <code>CustomerID</code>. Which operation adds customer attributes to each sale?", opts:["<code>pd.concat([sales, customers])</code> without keys","<code>sales.merge(customers, on='CustomerID', how='left')</code>","<code>sales.pivot_table(customers)</code>","<code>sales.drop(columns='CustomerID')</code>"], ans:1, explain:"A left merge keeps sales rows and brings matching customer columns by key."},
+    {topic:"Pandas Advanced - Merge Join Concat", q:"You receive twelve monthly files with identical columns and need one annual table. Which function is appropriate?", opts:["<code>pd.merge</code> on all columns","<code>df.join</code> with no index","<code>pd.read_json</code>","<code>pd.concat(monthly_frames, ignore_index=True)</code>"], ans:3, explain:"<code>pd.concat</code> stacks similarly structured tables. <code>ignore_index=True</code> creates a clean continuous index."},
+    {topic:"Pandas Advanced - Merge Join Concat", q:"You want all customers retained even when they have no purchases yet. Which merge type should start from customers?", opts:["<code>customers.merge(sales, how='inner')</code>","<code>sales.merge(customers, how='right')</code> is never allowed","<code>customers.merge(sales, how='left')</code>","<code>pd.concat</code> on columns only"], ans:2, explain:"A left join from the customer table keeps all customer rows and adds sales where available."},
+    {topic:"Pandas Advanced - Pivot Tables", q:"Which pandas method summarizes revenue by Region as rows and Product as columns with a sum aggregation?", opts:["<code>df.pivot_table(index='Region', columns='Product', values='Revenue', aggfunc='sum')</code>","<code>df.corr('Region','Product')</code>","<code>df.merge(index='Region')</code>","<code>df.fillna('Revenue')</code>"], ans:0, explain:"<code>pivot_table</code> reshapes and aggregates data across row and column dimensions."},
+    {topic:"Pandas Advanced - Pivot Tables", q:"You need a frequency table of customer Segment by Churn flag. Which function is designed for this?", opts:["<code>pd.concat</code>","<code>pd.to_datetime</code>","<code>pd.crosstab(df['Segment'], df['Churn'])</code>","<code>np.linalg.solve</code>"], ans:2, explain:"<code>pd.crosstab</code> creates contingency tables for counts or normalized frequencies."},
+    {topic:"Apply Map Vectorization", q:"A rule doubles every value in a numeric Series. Which approach is usually fastest and clearest?", opts:["A row-by-row Python loop","<code>s * 2</code>","Convert to strings first","Write each value to JSON"], ans:1, explain:"Vectorized Series arithmetic is concise and typically faster than Python-level loops."},
+    {topic:"Apply Map Vectorization", q:"A column has codes <code>{'N':'North','S':'South'}</code>. Which method cleanly converts codes to labels?", opts:["<code>df['region_code'].mean()</code>","<code>df['region_code'].split()</code>","<code>df['region_code'].head()</code>","<code>df['region_code'].map(code_map)</code>"], ans:3, explain:"<code>map</code> applies a dictionary or function element-wise to a Series."},
+    {topic:"Datetime Operations", q:"A CSV date column is text. What should you do before monthly analysis?", opts:["Use <code>pd.to_datetime(df['date'])</code>","Use <code>len(df['date'])</code> only","Sort the string alphabetically forever","Store dates as images"], ans:0, explain:"<code>pd.to_datetime</code> converts parseable date strings to datetime values so date accessors and resampling work correctly."},
+    {topic:"Datetime Operations", q:"After converting a date column, how do you extract month number?", opts:["<code>df['date'].month</code> on a Series","<code>df['date'].dt.month</code>","<code>df.month('date')</code>","<code>month(df['date'])</code>"], ans:1, explain:"The <code>.dt</code> accessor exposes datetime properties for pandas Series."},
+    {topic:"Datetime Operations", q:"A dataset has one row per order and you need weekly revenue. Which pattern is most appropriate after setting a datetime index?", opts:["<code>df.to_json().sum()</code>","<code>df.groupby('OrderID').head()</code>","<code>df.rename(columns={'date':'week'})</code>","<code>df.resample('W')['Revenue'].sum()</code>"], ans:3, explain:"Resampling groups time-indexed data into regular time periods such as weeks."},
+    {topic:"NumPy Intermediate - Broadcasting", q:"A matrix of daily sales has shape <code>(30, 4)</code> and a tax-rate vector has shape <code>(4,)</code>. What does broadcasting allow?", opts:["Changing the matrix into a dictionary","Deleting all columns","Adding the vector across matching columns without a manual loop","Converting arrays to SQL tables"], ans:2, explain:"Broadcasting can apply a compatible 1D vector across rows of a 2D array."},
+    {topic:"NumPy Intermediate - Vectorized Operations", q:"Which expression calculates percentage change for a NumPy array <code>x</code> without a Python loop?", opts:["<code>for row in x: row.percent()</code>","<code>(x[1:] - x[:-1]) / x[:-1]</code>","<code>x.to_percent_change()</code> only","<code>json.dumps(x)</code>"], ans:1, explain:"Slicing adjacent elements and using vectorized arithmetic computes all changes at once."},
+    {topic:"NumPy Intermediate - Performance", q:"Why are NumPy vectorized operations often faster than looping through Python lists?", opts:["They always use less memory regardless of data","They avoid all data validation","They run optimized array operations in lower-level compiled code","They automatically create charts"], ans:2, explain:"NumPy operations use optimized compiled routines and contiguous array layouts, reducing Python loop overhead."},
+    {topic:"Visualization - Matplotlib Seaborn", q:"A scatter plot should compare ad spend to revenue. Which Matplotlib call is most direct?", opts:["<code>plt.scatter(df['ad_spend'], df['revenue'])</code>","<code>plt.merge(df)</code>","<code>plt.fillna(df)</code>","<code>plt.read_csv(df)</code>"], ans:0, explain:"A scatter plot shows the relationship between two numeric variables."},
+    {topic:"Visualization - Matplotlib Seaborn", q:"You want to inspect correlations among numeric variables. Which Seaborn visual is commonly used?", opts:["<code>sns.countplot</code> of file names","<code>sns.barplot</code> without values","<code>sns.heatmap(df.corr(numeric_only=True), annot=True)</code>","<code>sns.read_excel</code>"], ans:2, explain:"A heatmap of a correlation matrix makes pairwise relationships easier to scan."},
+    {topic:"Visualization - Advanced EDA", q:"Which visual is useful for quickly scanning pairwise relationships and distributions across several numeric columns?", opts:["Box title only","A pairplot","A JSON dump","A left join"], ans:1, explain:"A pairplot combines pairwise scatter plots and univariate distributions for EDA."},
+    {topic:"Visualization - Plotly", q:"A stakeholder wants hover tooltips and zooming in the browser. Which library is usually a natural fit?", opts:["The built-in <code>csv</code> module","<code>re</code> only","<code>math</code> only","Plotly"], ans:3, explain:"Plotly is commonly used for interactive browser-based visualizations with hover and zoom behavior."},
+    {topic:"Visualization - Customizing Plots", q:"A chart is technically correct but has unlabeled axes and no units. What is the best improvement?", opts:["Add titles, axis labels, units, and readable formatting","Remove all annotations","Use random colors","Hide the legend even when needed"], ans:0, explain:"Clear labels and units turn a plot from a raw graphic into a usable business artifact."},
+    {topic:"Data Cleaning - Outliers", q:"A transaction amount is far beyond the normal range. What should you do first?", opts:["Delete it automatically","Convert it to a string","Investigate with business rules or an outlier method such as IQR/z-score","Duplicate it to balance the dataset"], ans:2, explain:"Outliers can be valid events or data errors. Investigation should precede removal."},
+    {topic:"Data Cleaning - Type Conversion", q:"A numeric column contains strings and occasional bad values. Which pandas pattern safely converts bad parses to missing values?", opts:["<code>pd.to_numeric(df['amount'], errors='coerce')</code>","<code>df['amount'].upper()</code>","<code>json.load(df['amount'])</code>","<code>df['amount'].plot()</code>"], ans:0, explain:"<code>errors='coerce'</code> converts invalid numeric strings to <code>NaN</code>, making them visible for handling."},
+    {topic:"Data Cleaning - Feature Transformations", q:"A revenue variable is highly right-skewed and used for analysis, not a legal invoice value. Which transform may make patterns easier to see?", opts:["Sort customer names","Drop the date column","Use <code>drop_duplicates</code> only","Apply a log transform after handling zeros/negatives"], ans:3, explain:"A log transform can compress large values and make skewed positive data easier to analyze."},
+    {topic:"Data Cleaning - Feature Transformations", q:"Two numeric features have very different units and will be compared in a distance-like score. What preparation is often needed?", opts:["Convert both to JSON","Use scaling or normalization after understanding the metric","Use only string concatenation","Create a pie chart"], ans:1, explain:"Scaling puts features on comparable ranges when magnitude differences would otherwise dominate."},
+    {topic:"Basic Statistics", q:"Which statistic is most robust for a typical value when income has extreme high earners?", opts:["Maximum","Row count only","Column name length","Median"], ans:3, explain:"The median is less affected by extreme values than the mean."},
+    {topic:"Basic Statistics", q:"Variance primarily measures what?", opts:["Spread around the mean","Whether a file exists","The number of columns","A join key's data type"], ans:0, explain:"Variance measures how far observations tend to be from their mean, in squared units."},
+    {topic:"Basic Statistics", q:"A correlation of 0.85 between marketing spend and revenue means what?", opts:["Marketing spend definitely causes revenue","There is a strong positive linear association, not proof of causation","The columns are identical","The dataset has no missing values"], ans:1, explain:"Correlation measures association. Causation requires design, domain reasoning, or further analysis."},
+    {topic:"Basic Statistics", q:"A histogram has a long tail to the right. What does that usually indicate?", opts:["Perfectly uniform data","A left-skewed distribution","A right-skewed distribution with some high values","No variation"], ans:2, explain:"A right tail indicates many lower or middle values and fewer large values."},
+    {topic:"Flask Basics", q:"In a minimal Flask API, which decorator maps a function to a URL route?", opts:["<code>@app.route('/summary')</code>","<code>@pd.route('/summary')</code>","<code>@np.array('/summary')</code>","<code>@json.file('/summary')</code>"], ans:0, explain:"<code>@app.route</code> registers a view function for a URL path in Flask."},
+    {topic:"Flask Basics", q:"A Flask endpoint should return a Python dictionary as JSON. Which helper is commonly used?", opts:["<code>render_template</code> only","<code>jsonify(data)</code>","<code>pd.read_csv(data)</code>","<code>plt.show(data)</code>"], ans:1, explain:"<code>jsonify</code> creates a JSON response from dictionaries or other serializable data."},
+    {topic:"Flask Basics", q:"A URL is <code>/sales?region=West</code>. Where does Flask commonly read <code>region</code> from?", opts:["<code>request.files</code> only","<code>session.columns</code>","<code>request.args.get('region')</code>","<code>np.args(region)</code>"], ans:2, explain:"Query-string parameters are exposed through <code>request.args</code>."},
+    {topic:"Streamlit", q:"What is the main value of Streamlit for analysts?", opts:["It replaces Python syntax","It only runs SQL joins","It creates compiled desktop software","It turns Python scripts into interactive data apps with widgets and charts"], ans:3, explain:"Streamlit is built for quick interactive data apps using normal Python scripts."},
+    {topic:"Streamlit", q:"Which Streamlit function displays a pandas DataFrame interactively?", opts:["<code>st.dataframe(df)</code>","<code>st.csv(df)</code>","<code>st.numpy(df)</code>","<code>st.route(df)</code>"], ans:0, explain:"<code>st.dataframe</code> displays tabular data in an interactive table-like component."},
+    {topic:"EDA Storytelling", q:"An EDA notebook shows 30 charts but no conclusion. What is missing?", opts:["More random colors","A narrative that connects findings to the business question","A larger font only","A forced machine learning model"], ans:1, explain:"EDA should surface evidence, explain implications, and tie results back to decisions."},
+    {topic:"Pandas Advanced - Missing Values", q:"Missing values are concentrated in one vendor's files. What does that suggest?", opts:["The data is certainly random missingness","The column should always be deleted","The missingness mechanism may be systematic and worth investigating","Correlation is impossible"], ans:2, explain:"Patterned missingness often reveals process or pipeline issues and should not be treated as random by default."},
+    {topic:"Pandas Advanced - Merge Join Concat", q:"A product dimension should have one row per ProductID. Which merge option helps catch unexpected duplicates during a many-to-one merge?", opts:["<code>suffixes=False</code>","<code>copy=False</code>","<code>indicator=False</code> only","<code>validate='many_to_one'</code>"], ans:3, explain:"The <code>validate</code> argument checks expected key cardinality and can catch duplicate dimension keys."},
+    {topic:"Datetime Operations", q:"A global product file mixes timezone-aware strings. What is a robust first parse when you want a common timeline?", opts:["<code>col.astype(int)</code>","<code>col.str.lower()</code>","<code>pd.crosstab(col)</code>","<code>pd.to_datetime(col, utc=True)</code>"], ans:3, explain:"Parsing with <code>utc=True</code> normalizes timezone-aware timestamps to UTC for consistent comparison."},
+    {topic:"Pandas Advanced - Missing Values", q:"A numeric KPI is missing differently by customer segment. Which pattern fills with each segment's median while preserving row alignment?", opts:["<code>df['kpi'] = df.groupby('segment')['kpi'].transform(lambda s: s.fillna(s.median()))</code>","<code>df.groupby('segment').dropna('kpi')</code>","<code>df['kpi'] = df['segment'].median()</code>","<code>df.merge('median')</code>"], ans:0, explain:"<code>groupby(...).transform</code> returns values aligned to the original rows, so segment-specific fills can be assigned back safely."},
+    {topic:"Pandas Advanced - GroupBy", q:"In a GroupBy result, what is the key difference between <code>size()</code> and <code>count()</code>?", opts:["They are always identical","<code>size()</code> counts rows including missing values; <code>count()</code> counts non-missing values per column","<code>count()</code> only works on strings","<code>size()</code> creates a pivot table"], ans:1, explain:"<code>size</code> counts rows in each group, while <code>count</code> counts non-null values column by column."},
+    {topic:"Pandas Advanced - Merge Join Concat", q:"After a customer merge, you need to audit which rows matched, left-only, or right-only. Which merge option helps?", opts:["<code>sort_values=True</code>","<code>copy=False</code>","<code>indicator=True</code>","<code>chunksize=1000</code>"], ans:2, explain:"<code>indicator=True</code> adds a column describing whether each row came from the left table, right table, or both."},
+    {topic:"Pandas Advanced - Pivot Tables", q:"A pivot table has missing Region/Product combinations that should display as zero in the summary. Which argument helps?", opts:["<code>errors='coerce'</code>","<code>validate='one_to_one'</code>","<code>utc=True</code>","<code>fill_value=0</code>"], ans:3, explain:"<code>fill_value=0</code> replaces missing aggregate cells in a pivot table with zero."},
+    {topic:"Apply Map Vectorization", q:"A margin column should be labeled Loss when negative and Profit otherwise. Which vectorized pattern fits?", opts:["<code>np.where(df['margin'] < 0, 'Loss', 'Profit')</code>","<code>df.apply(print)</code>","<code>json.dumps(df['margin'])</code>","<code>for row in df: sleep()</code>"], ans:0, explain:"<code>np.where</code> applies a vectorized two-way condition across the Series."},
+    {topic:"Datetime Operations", q:"A report should include only records from the last 30 days relative to the latest date in the file. Which pattern is sound?", opts:["Compare the date strings alphabetically only","Use <code>max_date = df['date'].max()</code> and filter dates greater than or equal to <code>max_date - pd.Timedelta(days=30)</code>","Use <code>df.tail(30)</code> regardless of dates","Delete the date column"], ans:1, explain:"Filtering with datetime values and <code>Timedelta</code> reflects actual dates rather than row order or string sorting."},
+    {topic:"Visualization - Advanced EDA", q:"Which Seaborn plot is a good first look at the shape of a numeric distribution?", opts:["<code>sns.mergeplot</code>","<code>sns.routeplot</code>","<code>sns.histplot(df['amount'], kde=True)</code>","<code>sns.read_csv</code>"], ans:2, explain:"A histogram, optionally with a density curve, shows distribution shape, skew, and unusual values."},
+    {topic:"Visualization - Plotly", q:"A Plotly dashboard has too many traces and becomes hard to read. What is the best design response?", opts:["Add more colors until every row is visible","Remove all labels","Convert every chart to 3D","Use filters, aggregation, and focused views that answer the main questions"], ans:3, explain:"Interactive dashboards still need focus. Filters and aggregation keep the experience usable."},
+    {topic:"Basic Statistics", q:"Overall conversion improved, but every region's conversion fell. What concept should you consider?", opts:["Simpson's paradox or a mix-shift effect","JSON serialization","Matrix multiplication","Regex greediness"], ans:0, explain:"Aggregate trends can reverse within subgroups when the mix of observations changes."},
+    {topic:"Streamlit", q:"A Streamlit app reloads the same large CSV on every interaction. Which decorator is intended for caching data-loading results?", opts:["<code>@st.route</code>","<code>@st.cache_data</code>","<code>@pd.cache</code>","<code>@np.memo</code>"], ans:1, explain:"<code>@st.cache_data</code> caches data-returning computations such as loading a file, reducing repeated work during reruns."}
+  ],
+
+  p3: [
+    {topic:"Advanced Pandas - MultiIndex", q:"A grouped result has index levels Region and Channel. Which pattern selects the West region from the first level?", opts:["<code>result['West']</code> always","<code>result.iloc['West']</code>","<code>json.load(result)</code>","<code>result.loc['West']</code> when Region is the outer index level"], ans:3, explain:"With Region as an index level, <code>.loc['West']</code> selects that label from the outer level."},
+    {topic:"Advanced Pandas - MultiIndex", q:"A MultiIndex report must be handed to a BI tool that expects regular columns. What should you usually do?", opts:["Keep the index hidden forever","Convert values to images","Delete all measures","Use <code>reset_index()</code> to flatten index levels into columns"], ans:3, explain:"Flattening index levels into columns makes the output easier for downstream tools and users."},
+    {topic:"Advanced Pandas - Window Functions", q:"Which calculation gives a 7-day moving average of revenue after sorting by date?", opts:["<code>df['Revenue'].expanding().max()</code>","<code>df['Revenue'].split(7)</code>","<code>df['Revenue'].merge(7)</code>","<code>df['Revenue'].rolling(7).mean()</code>"], ans:3, explain:"A rolling window calculates over a fixed-size moving window such as the last seven rows or days, depending on setup."},
+    {topic:"Advanced Pandas - Window Functions", q:"How does <code>expanding().mean()</code> differ from <code>rolling(7).mean()</code>?", opts:["It only works on strings","It deletes early rows","It uses all observations from the start through the current row","It requires Flask"], ans:2, explain:"An expanding window grows from the beginning of the series, while rolling uses a fixed-size moving window."},
+    {topic:"Advanced Pandas - Transformations", q:"Why use method chaining with <code>.pipe()</code> in a cleaning workflow?", opts:["To hide errors","To make ordered transformations readable, reusable, and testable","To force every column to object type","To prevent functions from returning values"], ans:1, explain:"Method chains and <code>.pipe()</code> make transformations flow in a clear order while keeping custom steps modular."},
+    {topic:"Advanced Pandas - Transformations", q:"In a chain, what does <code>.assign(margin=lambda d: d['profit'] / d['revenue'])</code> help with?", opts:["Creating a derived column without breaking the chain","Deleting the DataFrame","Writing a Flask route","Changing the operating system"], ans:0, explain:"<code>assign</code> can add derived columns and keep the pipeline expression composable."},
+    {topic:"Performance Tuning", q:"A row-wise <code>apply</code> over 5 million rows is slow. What should you try first?", opts:["Export to PNG","Use <code>time.sleep</code>","Find a vectorized pandas/NumPy expression or built-in method","Increase chart labels"], ans:2, explain:"Vectorized operations and built-ins usually reduce Python-level overhead dramatically."},
+    {topic:"Performance Tuning", q:"You need to bucket numeric values into several conditions at scale. Which NumPy tool is often cleaner than many row-wise if statements?", opts:["<code>np.savetxt</code> only","<code>np.linalg.det</code>","<code>np.random.shuffle</code>","<code>np.select</code>"], ans:3, explain:"<code>np.select</code> applies multiple vectorized conditions and choices without a Python row loop."},
+    {topic:"Performance Tuning", q:"For a large DataFrame, why might converting repeated strings like region names to <code>category</code> help?", opts:["It can reduce memory for low-cardinality repeated labels","It encrypts the data","It creates a Flask server","It removes all missing values"], ans:0, explain:"Categorical dtype stores repeated labels more compactly when cardinality is low relative to row count."},
+    {topic:"Advanced NumPy - Linear Algebra", q:"Which NumPy function solves a linear system <code>Ax = b</code> when <code>A</code> is square and suitable?", opts:["<code>np.mean(A, b)</code>","<code>np.random.solve(A, b)</code>","<code>np.linalg.solve(A, b)</code>","<code>np.concatenate(A, b)</code>"], ans:2, explain:"<code>np.linalg.solve</code> solves a well-posed system of linear equations."},
+    {topic:"Advanced NumPy - Linear Algebra", q:"Which operator performs matrix multiplication for compatible NumPy arrays?", opts:["<code>+</code>","<code>@</code>","<code>and</code>","<code>is</code>"], ans:1, explain:"The <code>@</code> operator performs matrix multiplication; <code>*</code> is element-wise multiplication."},
+    {topic:"Advanced NumPy - Memory", q:"A numeric column uses <code>float64</code> but only needs small integer category codes. What can reduce memory after validating range?", opts:["Convert to a wider string","Duplicate the column","Save as PNG","Downcast to a smaller integer dtype"], ans:3, explain:"Downcasting to an appropriate smaller dtype can reduce memory without changing valid values."},
+    {topic:"Advanced NumPy - Random Simulations", q:"Which modern NumPy pattern creates a random number generator for reproducible simulations?", opts:["<code>pd.read_random(seed)</code>","<code>random = seed</code> only","<code>np.linalg.random(seed)</code>","<code>np.random.default_rng(seed)</code>"], ans:3, explain:"<code>default_rng</code> creates a Generator object and accepts a seed for reproducibility."},
+    {topic:"Advanced NumPy - Random Simulations", q:"Why should a simulation notebook set and record its random seed?", opts:["To make every result larger","To make results reproducible for review and debugging","To remove all randomness permanently","To speed up imports only"], ans:1, explain:"A seed lets others reproduce the same pseudo-random sequence when validating results."},
+    {topic:"Performance & Scalability", q:"A CSV is too large to fit comfortably in memory. Which pandas option supports chunked processing?", opts:["<code>pd.read_csv(path, all_memory=True)</code>","<code>pd.to_datetime(path, chunks=True)</code>","<code>df.groupby(chunks=True)</code>","<code>pd.read_csv(path, chunksize=100000)</code>"], ans:3, explain:"<code>chunksize</code> returns an iterator of DataFrame chunks that can be processed incrementally."},
+    {topic:"Performance & Scalability", q:"When processing chunks, what is usually better than appending every chunk into one giant DataFrame?", opts:["Render each chunk as a separate pie chart","Convert each chunk to a string immediately","Aggregate each chunk and combine compact summaries","Ignore failed chunks silently"], ans:2, explain:"Chunk-level aggregation keeps memory bounded and often matches the business question."},
+    {topic:"Performance & Scalability", q:"Which file format is often better than CSV for repeated analytical reads with column pruning?", opts:["Plain TXT with commas","A screenshot","Parquet","A PowerPoint slide"], ans:2, explain:"Parquet is columnar and usually faster/more compact for analytical workloads than raw CSV."},
+    {topic:"Performance & Scalability", q:"Before optimizing a slow pipeline, what is the most professional first step?", opts:["Rewrite everything in another language","Add random multiprocessing","Profile to identify the real bottleneck","Delete logging"], ans:2, explain:"Profiling prevents wasted effort by showing where time is actually spent."},
+    {topic:"Performance & Scalability", q:"A pipeline reads 80 columns but uses only 8. What improvement is usually simple and high impact?", opts:["Read the file twice","Convert every column to object","Disable all validation","Use <code>usecols</code> or select needed columns early"], ans:3, explain:"Loading only required columns reduces memory, I/O, and downstream work."},
+    {topic:"Performance & Scalability", q:"Why avoid repeated DataFrame concatenation inside a loop?", opts:["It prevents syntax highlighting","It always changes numbers to dates","It can repeatedly copy data and become slow","It only works in notebooks"], ans:2, explain:"Repeated concatenation can reallocate and copy growing data many times. Collect frames and concatenate once when feasible."},
+    {topic:"Advanced Visualization & Storytelling", q:"A dashboard needs callbacks where selecting a region updates multiple visuals. Which framework is designed for this style of Python web dashboard?", opts:["The <code>csv</code> module","<code>json.loads</code>","<code>try/except</code> only","Plotly Dash"], ans:3, explain:"Dash supports interactive web apps with callbacks that update components based on user input."},
+    {topic:"Advanced Visualization & Storytelling", q:"A senior leader opens a dashboard for 30 seconds. What should the first view prioritize?", opts:["All raw rows","A dense correlation matrix only","Headline KPIs, trend context, and the key action signal","Unlabeled exploratory charts"], ans:2, explain:"Executive dashboards should surface the main signal quickly, then allow drill-down for detail."},
+    {topic:"Advanced Visualization & Storytelling", q:"Which storytelling choice is strongest for explaining churn increase?", opts:["Show the metric change, segment contribution, and likely business drivers","Show only code cells","Hide the time period","Use decorative colors only"], ans:0, explain:"Good storytelling connects what changed, where it changed, and why it matters."},
+    {topic:"Advanced Visualization & Storytelling", q:"A chart shows revenue growth but omits that margin fell. What is the risk?", opts:["The chart is too small","The story is incomplete and may lead to the wrong decision","The DataFrame has no index","The code cannot run"], ans:1, explain:"Business storytelling should include relevant counter-metrics so conclusions are not misleading."},
+    {topic:"Real-world Problem Solving - Project Structure", q:"A notebook has data loading, cleaning, metrics, and charts mixed in one long file. What is a stronger project structure?", opts:["Keep everything in one hidden cell","Split reusable logic into modules such as <code>io.py</code>, <code>cleaning.py</code>, and <code>metrics.py</code>","Remove all functions","Store code in image files"], ans:1, explain:"Separating responsibilities makes code easier to test, reuse, and maintain."},
+    {topic:"Real-world Problem Solving - Reusable Modules", q:"What is a sign of a reusable data-cleaning function?", opts:["It depends on a hard-coded local desktop path only","It has clear inputs, returns a result, and avoids hidden side effects","It prints everything but returns nothing","It changes global state without warning"], ans:1, explain:"Reusable functions should accept inputs, produce outputs, and keep side effects explicit."},
+    {topic:"Real-world Problem Solving - Production Code", q:"Secrets such as database passwords should usually be handled how?", opts:["Hard-code them in the notebook","Commit them to GitHub","Read them from environment variables or a secret manager","Put them in chart subtitles"], ans:2, explain:"Secrets should not be committed. Environment variables or secret managers keep credentials out of source code."},
+    {topic:"Logging & Debugging", q:"For a scheduled pipeline, why is <code>logging</code> better than scattered <code>print</code> statements?", opts:["Logging supports levels, timestamps, handlers, and production-friendly output","Logging makes code shorter always","Print cannot display text","Logging removes all errors"], ans:0, explain:"The logging module provides structured, configurable runtime information for operations and debugging."},
+    {topic:"Logging & Debugging", q:"An exception handler catches an error and only says <code>failed</code>. What should be improved?", opts:["Hide the exception completely","Log useful context and stack trace, then handle or re-raise appropriately","Always continue silently","Convert the error to a pie chart"], ans:1, explain:"Good error handling preserves enough context to diagnose the failure while making recovery behavior explicit."},
+    {topic:"Logging & Debugging", q:"A bug appears only after a complex notebook run. What helps isolate it?", opts:["Create a minimal reproducible example or focused test case","Add more unrelated charts","Rename every variable randomly","Ignore input assumptions"], ans:0, explain:"Reducing the problem to a small reproducible case makes root-cause analysis much faster."},
+    {topic:"Production-ready Code", q:"Why add type hints to reusable functions in an analytics codebase?", opts:["They replace all tests","They make Python statically typed at runtime always","They are required for pandas to import","They document expected inputs and can help static tooling catch mistakes"], ans:3, explain:"Type hints improve readability and enable optional static checks, though runtime validation still needs explicit checks or tests."},
+    {topic:"Production-ready Code", q:"A notebook prototype is moving to a scheduled job. What is usually needed?", opts:["Keep manual cell execution as the only workflow","Convert core logic into scripts/modules with parameters, logging, and tests","Delete all documentation","Use only screenshots"], ans:1, explain:"Scheduled jobs need repeatable entry points, clear configuration, logging, and validation."},
+    {topic:"Advanced Pandas - MultiIndex", q:"You need each row's share of revenue within its Region after grouping. Which pattern is commonly useful?", opts:["<code>groupby(...).transform(...)</code> to align group results back to original rows","<code>groupby(...).to_json()</code> only","<code>merge</code> with no key","<code>np.linalg.det</code>"], ans:0, explain:"<code>transform</code> returns group-level calculations aligned to the original rows, useful for percentages of group totals."},
+    {topic:"Advanced Pandas - Window Functions", q:"In time-series feature creation for forecasting, why must rolling features avoid future rows?", opts:["Future rows can leak information and overstate performance","Future rows make charts prettier","Rolling cannot handle dates","It makes memory infinite"], ans:0, explain:"Using future information in features creates leakage and unrealistic validation results."},
+    {topic:"Performance Tuning", q:"A pandas assignment triggers a chained assignment warning. What is the safer style?", opts:["Ignore it forever","Use explicit <code>.loc[row_mask, 'col'] = value</code> on the intended DataFrame","Convert to CSV first","Use <code>print</code> instead"], ans:1, explain:"Explicit <code>.loc</code> assignment makes the target clear and avoids ambiguous view-versus-copy behavior."},
+    {topic:"Real-world Problem Solving - Pipelines", q:"A data pipeline may be rerun after failure. What property is especially valuable?", opts:["Idempotence, so rerunning does not duplicate or corrupt outputs","Random side effects","Manual copy-paste steps","Hidden global variables"], ans:0, explain:"Idempotent steps are safer to retry because they produce the same intended result without duplicating work."},
+    {topic:"Real-world Problem Solving - Project Structure", q:"A command-line script needs different input paths for dev and production. What is better than editing code each time?", opts:["Use command-line arguments or configuration","Hard-code one user's Downloads folder","Ask users to edit source code","Store paths in plot labels"], ans:0, explain:"Arguments or config files make runs reproducible across environments without source edits."},
+    {topic:"Production-ready Code", q:"Before publishing a cleaned dataset, what validation is most useful?", opts:["Check schema, required columns, key uniqueness, ranges, and row counts","Only check chart colors","Assume upstream data is perfect","Delete all nulls without review"], ans:0, explain:"Data validation catches structural and business-rule failures before users rely on the output."},
+    {topic:"Interview Decision Making", q:"In an interview, how should you explain choosing vectorization over <code>apply</code>?", opts:["Say <code>apply</code> is always illegal","Explain readability, speed, data size, and whether a built-in vectorized operation exists","Say Python does not support functions","Say charts decide performance"], ans:1, explain:"Strong answers compare trade-offs and justify the decision based on scale, clarity, and available library operations."},
+    {topic:"Interview Decision Making", q:"A dataset is too large for memory and the interviewer asks for options. Which answer is strongest?", opts:["Give up immediately","Use only Excel","Discuss chunking, column selection, efficient dtypes, Parquet, databases, or distributed tools based on constraints","Always sample one row"], ans:2, explain:"A senior answer lays out practical options and chooses based on data size, infrastructure, latency, and accuracy needs."},
+    {topic:"Advanced Pandas - Time-aware Joins", q:"Trades need the most recent quote at or before each trade timestamp. Which pandas function is designed for this nearest-key time join?", opts:["<code>pd.concat</code>","<code>pd.crosstab</code>","<code>pd.merge_asof</code>","<code>pd.get_dummies</code>"], ans:2, explain:"<code>merge_asof</code> performs nearest-key joins, commonly used for time-ordered data such as trades and quotes."},
+    {topic:"Advanced Pandas - Window Functions", q:"A DataFrame has irregular timestamps and you need a seven-day rolling revenue window by date. Which pattern is most appropriate?", opts:["<code>df['Revenue'].rolling(7)</code> regardless of date gaps","<code>df.groupby('Revenue')</code>","<code>df['date'].astype(str).rolling(7)</code>","<code>df.rolling('7D', on='date')['Revenue'].sum()</code>"], ans:3, explain:"A time-based rolling window such as <code>'7D'</code> respects actual datetime distance instead of just row count."},
+    {topic:"Real-world Problem Solving - Testing", q:"A cleaning pipeline is refactored into modules. What should the first tests usually check?", opts:["Known input/output examples, schema expectations, and important edge cases","Only whether charts are blue","Whether the file name is long","Whether print statements exist"], ans:0, explain:"Focused tests around expected transformations and edge cases catch regressions when code is reused."},
+    {topic:"Performance & Scalability", q:"A SQL warehouse can filter 500 million rows before data reaches Python. What is usually best?", opts:["Load all rows into pandas first","Push filtering and aggregation to the database when possible","Export every row to Excel","Loop through rows manually"], ans:1, explain:"Databases are built to filter and aggregate large data close to storage, reducing network and memory cost."},
+    {topic:"Advanced NumPy - Memory", q:"A numeric array is larger than RAM but must be accessed in slices from disk. Which NumPy feature may help?", opts:["<code>np.vectorize</code>","<code>np.random.seed</code>","<code>np.memmap</code>","<code>np.char.upper</code>"], ans:2, explain:"<code>np.memmap</code> can map array data on disk and access slices without loading the whole array into memory at once."},
+    {topic:"Advanced NumPy - Memory", q:"What is the trade-off when converting <code>float64</code> arrays to <code>float32</code>?", opts:["It always improves accuracy","It prevents arithmetic","It turns numbers into strings","It can reduce memory, but may reduce precision"], ans:3, explain:"<code>float32</code> uses less memory than <code>float64</code>, but has lower precision and must be validated for the use case."},
+    {topic:"Production-ready Code", q:"How should a project make dependencies reproducible across machines?", opts:["Use a virtual environment plus a dependency file such as <code>requirements.txt</code> or <code>pyproject.toml</code>","Install packages manually from memory","Commit the whole Python installation","Avoid documenting versions"], ans:0, explain:"Isolated environments and dependency files make setup repeatable for collaborators and deployment."},
+    {topic:"Logging & Debugging", q:"Which operational metrics are useful for a scheduled data pipeline?", opts:["Only chart colors","Run duration, row counts, warning counts, failure reason, and output location","The developer's screen size","Random notebook cell order"], ans:1, explain:"Operational metrics make it easier to detect drift, failures, and unusual pipeline behavior."},
+    {topic:"Real-world Problem Solving - Testing", q:"What makes a unit test for a pure transformation function strong?", opts:["It depends on today's production database only","It has no expected result","It uses a small fixed input and asserts the exact expected output","It only checks that code runs once"], ans:2, explain:"Small deterministic inputs with expected outputs make tests fast, clear, and reliable."},
+    {topic:"Interview Decision Making", q:"An interviewer asks why you did not optimize a readable pipeline further. What is the best answer?", opts:["Optimization is never useful","Pandas cannot be optimized","Readable code is always slow","I would profile first and optimize only proven bottlenecks while preserving maintainability"], ans:3, explain:"Senior engineering judgement balances performance with correctness, readability, and actual measured bottlenecks."}
+  ]
+};
+
+const labels = { p1:"P1 Basic", p2:"P2 Intermediate", p3:"P3 Advanced" };
+const levels = ["p1", "p2", "p3"];
+const letters = ["A", "B", "C", "D"];
+const state = { level:"p1", qi:0, answers:{}, selected:{}, correct:0, answered:0, streak:0 };
+
+function initLevel(level) {
+  if (!state.answers[level]) state.answers[level] = new Array(questions[level].length).fill(null);
+}
+
+function render() {
+  const level = state.level;
+  const qs = questions[level];
+  const ans = state.answers[level];
+  const q = qs[state.qi];
+  const done = ans.filter(Boolean).length;
+  document.getElementById("level-label").textContent = labels[level];
+  document.getElementById("q-count").textContent = `${state.qi + 1} / ${qs.length}`;
+  document.getElementById("progress-bar").style.width = `${Math.max(3, done / qs.length * 100)}%`;
+  const dots = document.getElementById("progress-dots");
+  dots.innerHTML = "";
+  ans.forEach((a, i) => {
+    const d = document.createElement("div");
+    d.className = "dot" + (i === state.qi ? " current" : "") + (a ? " " + a : "");
+    d.title = `Q${i + 1}`;
+    d.onclick = () => { state.qi = i; render(); };
+    dots.appendChild(d);
+  });
+  document.getElementById("q-topic").textContent = q.topic;
+  document.getElementById("q-num").textContent = `Q${state.qi + 1}`;
+  document.getElementById("q-text").innerHTML = q.q;
+  const optEl = document.getElementById("options");
+  optEl.innerHTML = "";
+  const answered = ans[state.qi] !== null;
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    let cls = "option";
+    if (answered) {
+      if (i === q.ans) cls += " correct";
+      else if (ans[state.qi] === "wrong" && state.selected[`${level}-${state.qi}`] === i) cls += " wrong";
+      btn.disabled = true;
+    }
+    btn.className = cls;
+    btn.innerHTML = `<span class="letter">${letters[i]}</span><span>${opt}</span>`;
+    if (!answered) btn.onclick = () => pick(i);
+    optEl.appendChild(btn);
+  });
+  const fb = document.getElementById("feedback");
+  if (ans[state.qi] === "correct") { fb.className = "feedback show good"; fb.innerHTML = `<strong>Correct.</strong> ${q.explain}`; }
+  else if (ans[state.qi] === "wrong") { fb.className = "feedback show bad"; fb.innerHTML = `<strong>Correct answer: ${letters[q.ans]}.</strong> ${q.explain}`; }
+  else if (ans[state.qi] === "skipped") { fb.className = "feedback show bad"; fb.innerHTML = `<strong>Skipped. Correct answer: ${letters[q.ans]}.</strong> ${q.explain}`; }
+  else { fb.className = "feedback"; fb.innerHTML = ""; }
+  document.getElementById("btn-next").disabled = !answered;
+  document.getElementById("btn-skip").disabled = answered;
+  document.getElementById("btn-next").textContent = ans.every(Boolean) ? "See Results" : "Next";
+  document.getElementById("global-score").textContent = `${state.correct} / ${state.answered}`;
+  document.getElementById("global-streak").textContent = state.streak;
+}
+
+function pick(i) {
+  const level = state.level;
+  const q = questions[level][state.qi];
+  const ok = i === q.ans;
+  state.answers[level][state.qi] = ok ? "correct" : "wrong";
+  state.selected[`${level}-${state.qi}`] = i;
+  state.answered += 1;
+  if (ok) { state.correct += 1; state.streak += 1; } else { state.streak = 0; }
+  render();
+}
+
+function skipQuestion() {
+  const ans = state.answers[state.level];
+  if (ans[state.qi] === null) { ans[state.qi] = "skipped"; state.answered += 1; state.streak = 0; }
+  render();
+}
+
+function nextQuestion() {
+  const ans = state.answers[state.level];
+  if (ans.every(Boolean)) { showResults(); return; }
+  let next = (state.qi + 1) % ans.length;
+  while (ans[next]) next = (next + 1) % ans.length;
+  state.qi = next;
+  render();
+}
+
+function showResults() {
+  const level = state.level;
+  const ans = state.answers[level];
+  const total = ans.length;
+  const correct = ans.filter(a => a === "correct").length;
+  const wrong = ans.filter(a => a === "wrong").length;
+  const skipped = ans.filter(a => a === "skipped").length;
+  const pct = Math.round(correct / total * 100);
+  document.getElementById("question-card").style.display = "none";
+  document.getElementById("results").className = "results show";
+  document.getElementById("result-score").textContent = correct;
+  document.getElementById("result-denom").textContent = `/ ${total}`;
+  document.getElementById("res-correct").textContent = correct;
+  document.getElementById("res-wrong").textContent = wrong;
+  document.getElementById("res-skipped").textContent = skipped;
+  document.getElementById("score-ring").className = "score-ring " + (pct >= 80 ? "" : pct >= 60 ? "avg" : "low");
+  document.getElementById("results-title").textContent = pct >= 80 ? "Interview Ready" : pct >= 60 ? "Good Progress" : "Needs More Practice";
+  document.getElementById("results-msg").textContent = `You scored ${correct}/${total} (${pct}%)`;
+  document.getElementById("btn-next-level").style.display = levels.indexOf(level) < levels.length - 1 ? "" : "none";
+  document.getElementById(`tab-${level}`).classList.add("done");
+  const stats = {};
+  questions[level].forEach((q, i) => {
+    if (!stats[q.topic]) stats[q.topic] = { c:0, t:0 };
+    stats[q.topic].t += 1;
+    if (ans[i] === "correct") stats[q.topic].c += 1;
+  });
+  document.getElementById("topic-breakdown").innerHTML = Object.entries(stats).map(([t, s]) =>
+    `<div class="topic-row"><span>${t}</span><strong>${s.c}/${s.t}</strong></div>`).join("");
+}
+
+function retryLevel() {
+  const level = state.level;
+  state.answers[level] = new Array(questions[level].length).fill(null);
+  recalcGlobal();
+  state.qi = 0;
+  document.getElementById(`tab-${level}`).classList.remove("done");
+  document.getElementById("results").className = "results";
+  document.getElementById("question-card").style.display = "";
+  render();
+}
+
+function recalcGlobal() {
+  state.correct = 0; state.answered = 0; state.streak = 0;
+  Object.values(state.answers).forEach(arr => arr.forEach(a => { if (a) { state.answered += 1; if (a === "correct") state.correct += 1; } }));
+}
+
+function switchLevel(level) {
+  state.level = level; state.qi = 0; initLevel(level);
+  document.querySelectorAll(".level-tab").forEach(t => t.classList.remove("active"));
+  document.getElementById(`tab-${level}`).classList.add("active");
+  document.getElementById("results").className = "results";
+  document.getElementById("question-card").style.display = "";
+  if (state.answers[level].every(Boolean)) showResults(); else render();
+}
+
+function nextLevel() {
+  const i = levels.indexOf(state.level);
+  if (i < levels.length - 1) switchLevel(levels[i + 1]);
+}
+
+function toggleTheme() {
+  const root = document.documentElement;
+  const dark = root.getAttribute("data-theme") === "dark";
+  root.setAttribute("data-theme", dark ? "light" : "dark");
+  document.querySelector(".theme-btn").textContent = dark ? "Dark" : "Light";
+}
+
+initLevel("p1");
+render();
+  </script>
+</body>
+</html>
