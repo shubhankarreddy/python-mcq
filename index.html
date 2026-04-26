@@ -80,6 +80,11 @@
     .submission-status { min-height:22px; margin-top:10px; font-size:.88rem; font-weight:700; }
     .submission-status.ok { color:var(--green); }
     .submission-status.err { color:var(--red); }
+    .submission-thanks { display:none; text-align:center; padding:18px 12px 8px; }
+    .submission-thanks.show { display:block; }
+    .submission-thanks-icon { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:50%; background:var(--blue-dark); color:#fff; font-weight:900; margin-bottom:12px; }
+    .submission-thanks-title { font-weight:900; color:var(--ink); margin-bottom:6px; }
+    .submission-thanks p { color:var(--muted); margin:0; font-size:.9rem; }
     .learner-gate { max-width:780px; margin:24px auto 0; padding:0 20px 60px; }
     .learner-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow-md); padding:26px; }
     .learner-title { font-family:var(--font-head); font-size:1.45rem; margin-bottom:6px; color:var(--blue-dark); }
@@ -193,6 +198,11 @@
         <div class="submission-title">Submit your score</div>
         <p class="submission-note">Your learner details were captured before the quiz started.</p>
         <div class="learner-summary" id="learner-summary"></div>
+        <div class="submission-thanks" id="submission-thanks" aria-live="polite">
+          <div class="submission-thanks-icon">OK</div>
+          <div class="submission-thanks-title">Thank you. Your score has been submitted.</div>
+          <p>Your attempt is now saved for learner tracking.</p>
+        </div>
         <button class="btn btn-primary" id="btn-submit-attempt" type="submit">Submit Score</button>
         <div class="submission-status" id="submission-status" aria-live="polite"></div>
       </form>
@@ -371,13 +381,43 @@ function setSubmissionStatus(message, kind = "") {
 }
 
 function resetSubmissionState() {
+  const form = document.getElementById("submission-form");
+  const title = form ? form.querySelector(".submission-title") : null;
+  const note = form ? form.querySelector(".submission-note") : null;
+  const summary = document.getElementById("learner-summary");
+  const thanks = document.getElementById("submission-thanks");
   const btn = document.getElementById("btn-submit-attempt");
+  const status = document.getElementById("submission-status");
+  if (form) form.classList.remove("submitted");
+  if (title) title.textContent = "Submit your score";
+  if (note) note.style.display = "";
+  if (summary) summary.style.display = "";
+  if (thanks) thanks.classList.remove("show");
+  if (status) status.style.display = "";
   if (btn) {
     btn.disabled = false;
     btn.textContent = "Submit Score";
+    btn.style.display = "";
   }
   setSubmissionStatus("");
   renderLearnerSummary();
+}
+
+function showSubmissionThankYou() {
+  const form = document.getElementById("submission-form");
+  const title = form ? form.querySelector(".submission-title") : null;
+  const note = form ? form.querySelector(".submission-note") : null;
+  const summary = document.getElementById("learner-summary");
+  const thanks = document.getElementById("submission-thanks");
+  const btn = document.getElementById("btn-submit-attempt");
+  const status = document.getElementById("submission-status");
+  if (form) form.classList.add("submitted");
+  if (title) title.textContent = "Submitted";
+  if (note) note.style.display = "none";
+  if (summary) summary.style.display = "none";
+  if (btn) btn.style.display = "none";
+  if (status) status.style.display = "none";
+  if (thanks) thanks.classList.add("show");
 }
 
 function initLearnerForm() {
@@ -502,6 +542,7 @@ async function submitAttempt(event) {
     if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
     btn.textContent = "Submitted";
     setSubmissionStatus("Score submitted successfully.", "ok");
+    showSubmissionThankYou();
   } catch (err) {
     btn.disabled = false;
     btn.textContent = "Submit Score";
@@ -557,6 +598,9 @@ function render() {
   document.getElementById("btn-next").textContent = ans.every(Boolean) ? "See Results" : "Next";
   document.getElementById("global-score").textContent = `${state.correct} / ${state.answered}`;
   document.getElementById("global-streak").textContent = state.streak;
+  if (ans.every(Boolean)) {
+    showResults();
+  }
 }
 
 function pick(i) {
