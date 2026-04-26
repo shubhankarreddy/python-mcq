@@ -482,6 +482,16 @@ function renderLearnerSummary() {
   el.textContent = `${learnerProfile.name} | ${learnerProfile.batch} | ${learnerProfile.course} | ${learnerProfile.city}`;
 }
 
+function isTestAttempt() {
+  const params = new URLSearchParams(window.location.search);
+  const profileText = `${learnerProfile?.name || ""} ${learnerProfile?.email || ""} ${learnerProfile?.mobile || ""}`.toLowerCase();
+  return window.location.protocol === "file:" ||
+    ["localhost", "127.0.0.1"].includes(window.location.hostname) ||
+    params.get("test") === "1" ||
+    /\b(test|sample)\b/.test(profileText) ||
+    /@example\./.test(profileText);
+}
+
 function currentAttemptSummary(level) {
   const ans = state.answers[level];
   const correct = ans.filter(a => a === "correct").length;
@@ -522,6 +532,7 @@ async function submitAttempt(event) {
   if (title) title.textContent = "Submitting your score";
   setSubmissionStatus("Submitting score automatically...");
   const summary = currentAttemptSummary(level);
+  const answerDetails = buildAnswerDetails(level);
   const payload = {
     quiz_slug: QUIZ_META.slug,
     quiz_title: QUIZ_META.title,
@@ -529,24 +540,41 @@ async function submitAttempt(event) {
     level_label: labels[level],
     learner_name: learnerProfile.name,
     learner_email: learnerProfile.email || null,
-    learner_phone: learnerProfile.mobile || null,
-    batch: learnerProfile.batch || null,
+    learner_phone: learnerProfile.mobile ? String(learnerProfile.mobile) : null,
+    batch: learnerProfile.batch ? String(learnerProfile.batch) : null,
+    course: learnerProfile.course || null,
+    city: learnerProfile.city || null,
+    is_test: isTestAttempt(),
     score: summary.correct,
     total: summary.total,
     correct_count: summary.correct,
     wrong_count: summary.wrong,
     skipped_count: summary.skipped,
-    answers: { learner: { course: learnerProfile.course, city: learnerProfile.city }, responses: buildAnswerDetails(level) },
+    answers: { responses: answerDetails },
     page_url: window.location.href,
     user_agent: navigator.userAgent
   };
+  const legacyPayload = { ...payload, answers: { learner: { course: learnerProfile.course, city: learnerProfile.city }, responses: answerDetails } };
+  delete legacyPayload.course;
+  delete legacyPayload.city;
+  delete legacyPayload.is_test;
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/quiz_attempts`, {
+    let res = await fetch(`${SUPABASE_URL}/rest/v1/quiz_attempts`, {
       method: "POST",
       headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
       body: JSON.stringify(payload)
     });
-    if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
+    if (!res.ok) {
+      const message = await res.text();
+      if (/PGRST204|schema cache|course|city|is_test/i.test(message)) {
+        res = await fetch(`${SUPABASE_URL}/rest/v1/quiz_attempts`, {
+          method: "POST",
+          headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+          body: JSON.stringify(legacyPayload)
+        });
+      }
+      if (!res.ok) throw new Error(message || await res.text() || `HTTP ${res.status}`);
+    }
     submittedLevels[level] = true;
     btn.textContent = "Submitted";
     setSubmissionStatus("Score submitted successfully.", "ok");
