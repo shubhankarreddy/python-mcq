@@ -87,6 +87,7 @@
     .learner-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
     .learner-card label { display:flex; flex-direction:column; gap:5px; font-size:.82rem; font-weight:800; color:var(--muted); }
     .learner-card input { width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 11px; font:inherit; color:var(--ink); background:var(--bg); }
+    .learner-card input::placeholder { color:var(--muted); font-style:italic; opacity:.62; }
     .learner-summary { margin:0 0 14px; padding:10px 12px; border-radius:7px; background:var(--surface); border:1px solid var(--border); color:var(--muted); font-size:.88rem; }
     body:not(.learner-ready) .level-bar, body:not(.learner-ready) .main { display:none; }
     body.learner-ready .learner-gate { display:none; }
@@ -132,22 +133,22 @@
       <p class="learner-note">Enter your details to start the Python MCQ assessment.</p>
       <div class="learner-grid">
         <label>Name *
-          <input id="profile-name" autocomplete="name" maxlength="120" required>
+          <input id="profile-name" autocomplete="name" maxlength="120" placeholder="Enter your name" required>
         </label>
         <label>Batch *
-          <input id="profile-batch" maxlength="80" required>
+          <input id="profile-batch" type="number" min="1" step="1" inputmode="numeric" placeholder="Enter batch number" required>
         </label>
         <label>Course *
-          <input id="profile-course" maxlength="120" required>
+          <input id="profile-course" maxlength="120" placeholder="Enter course name" required>
         </label>
         <label>Mobile *
-          <input id="profile-mobile" autocomplete="tel" maxlength="40" required>
+          <input id="profile-mobile" autocomplete="tel" inputmode="numeric" pattern="[0-9]{10}" minlength="10" placeholder="Enter 10-digit mobile number" required>
         </label>
         <label>Email *
-          <input id="profile-email" type="email" autocomplete="email" maxlength="160" required>
+          <input id="profile-email" type="email" autocomplete="email" maxlength="160" placeholder="Enter email address" required>
         </label>
         <label>City *
-          <input id="profile-city" maxlength="80" required>
+          <input id="profile-city" maxlength="80" placeholder="Enter city" required>
         </label>
       </div>
       <button class="btn btn-primary" type="submit">Start Quiz</button>
@@ -379,8 +380,48 @@ function resetSubmissionState() {
   renderLearnerSummary();
 }
 
+function initLearnerForm() {
+  document.querySelectorAll(".learner-card input[placeholder]").forEach(input => {
+    const hint = input.placeholder;
+    input.addEventListener("focus", () => { input.placeholder = ""; });
+    input.addEventListener("blur", () => {
+      if (!input.value) input.placeholder = hint;
+    });
+  });
+  [
+    { id: "profile-batch" },
+    { id: "profile-mobile", max: 10 }
+  ].forEach(({ id, max }) => {
+    const input = document.getElementById(id);
+    if (!input) return;
+    input.addEventListener("input", () => {
+      input.value = input.value.replace(/\D/g, "").slice(0, max || undefined);
+      input.setCustomValidity("");
+    });
+  });
+}
+
+function validateLearnerDetails() {
+  const batchInput = document.getElementById("profile-batch");
+  const mobileInput = document.getElementById("profile-mobile");
+  if (!/^\d+$/.test(batchInput.value.trim()) || Number(batchInput.value) < 1) {
+    batchInput.setCustomValidity("Enter batch as a whole number.");
+    batchInput.reportValidity();
+    return false;
+  }
+  if (!/^\d{10}$/.test(mobileInput.value.trim())) {
+    mobileInput.setCustomValidity("Enter exactly 10 digits for mobile number.");
+    mobileInput.reportValidity();
+    return false;
+  }
+  batchInput.setCustomValidity("");
+  mobileInput.setCustomValidity("");
+  return true;
+}
+
 function startQuiz(event) {
   event.preventDefault();
+  if (!validateLearnerDetails()) return;
   learnerProfile = {
     name: document.getElementById("profile-name").value.trim(),
     batch: document.getElementById("profile-batch").value.trim(),
@@ -612,6 +653,7 @@ function toggleTheme() {
   document.querySelector(".theme-btn").textContent = dark ? "Dark" : "Light";
 }
 
+initLearnerForm();
 initLevel("p1");
 render();
   </script>
