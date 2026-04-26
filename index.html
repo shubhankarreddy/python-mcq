@@ -595,7 +595,7 @@ function render() {
   else { fb.className = "feedback"; fb.innerHTML = ""; }
   document.getElementById("btn-next").disabled = !answered;
   document.getElementById("btn-skip").disabled = answered;
-  document.getElementById("btn-next").textContent = ans.every(Boolean) ? "See Results" : "Next";
+  document.getElementById("btn-next").textContent = state.qi === ans.length - 1 ? (ans.every(Boolean) ? "See Results" : "Finish") : "Next";
   document.getElementById("global-score").textContent = `${state.correct} / ${state.answered}`;
   document.getElementById("global-streak").textContent = state.streak;
   if (ans.every(Boolean)) {
@@ -620,8 +620,21 @@ function skipQuestion() {
   render();
 }
 
+function finishLevel() {
+  const ans = state.answers[state.level];
+  ans.forEach((value, index) => {
+    if (!value) {
+      ans[index] = "skipped";
+      state.answered += 1;
+    }
+  });
+  state.streak = 0;
+  showResults();
+}
+
 function nextQuestion() {
   const ans = state.answers[state.level];
+  if (state.qi === ans.length - 1) { finishLevel(); return; }
   if (ans.every(Boolean)) { showResults(); return; }
   let next = (state.qi + 1) % ans.length;
   while (ans[next]) next = (next + 1) % ans.length;
