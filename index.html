@@ -71,6 +71,15 @@
     .star-cta { max-width:460px; margin:0 auto 18px; padding:14px 16px; border:1px solid var(--border); border-radius:8px; background:var(--bg); color:var(--ink); font-size:.92rem; }
     .star-cta a { color:var(--blue-dark); font-weight:800; text-decoration:none; }
     .star-cta a:hover { text-decoration:underline; }
+    .submission-card { max-width:640px; margin:0 auto 18px; padding:18px; border:1px solid var(--border); border-radius:10px; background:var(--bg); text-align:left; }
+    .submission-title { font-weight:800; margin-bottom:4px; }
+    .submission-note { color:var(--muted); font-size:.86rem; margin-bottom:14px; }
+    .submission-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-bottom:14px; }
+    .submission-card label { display:flex; flex-direction:column; gap:5px; font-size:.82rem; font-weight:700; color:var(--muted); }
+    .submission-card input { width:100%; border:1px solid var(--border); border-radius:7px; padding:10px 11px; font:inherit; color:var(--ink); background:var(--surface); }
+    .submission-status { min-height:22px; margin-top:10px; font-size:.88rem; font-weight:700; }
+    .submission-status.ok { color:var(--green); }
+    .submission-status.err { color:var(--red); }
     .results { display:none; text-align:center; padding:40px 28px; box-shadow:var(--shadow-md); }
     .results.show { display:block; }
     .score-ring { width:132px; height:132px; border-radius:50%; border:8px solid var(--green); display:flex; flex-direction:column; align-items:center; justify-content:center; margin:0 auto 20px; }
@@ -91,6 +100,7 @@
       .question-card { padding:20px 16px; }
       .level-tab { min-width:0; flex:1 1 145px; padding:9px 12px; }
       .q-meta, .progress-head { flex-direction:column; }
+      .submission-grid { grid-template-columns:1fr; }
     }
   </style>
 </head>
@@ -140,6 +150,26 @@
         <div class="bi"><div class="bi-num" id="res-skipped">0</div><div class="bi-label">Skipped</div></div>
       </div>
       <div class="topic-breakdown" id="topic-breakdown"></div>
+      <form class="submission-card" id="submission-form" onsubmit="submitAttempt(event)">
+        <div class="submission-title">Submit your score</div>
+        <p class="submission-note">Your score, level, and topic attempt details will be saved for learner tracking.</p>
+        <div class="submission-grid">
+          <label>Name *
+            <input id="learner-name" name="learner_name" autocomplete="name" maxlength="120" required>
+          </label>
+          <label>Email
+            <input id="learner-email" name="learner_email" type="email" autocomplete="email" maxlength="160">
+          </label>
+          <label>Phone
+            <input id="learner-phone" name="learner_phone" autocomplete="tel" maxlength="40">
+          </label>
+          <label>Batch
+            <input id="learner-batch" name="batch" maxlength="80" placeholder="e.g. Weekend Batch">
+          </label>
+        </div>
+        <button class="btn btn-primary" id="btn-submit-attempt" type="submit">Submit Score</button>
+        <div class="submission-status" id="submission-status" aria-live="polite"></div>
+      </form>
       <div class="star-cta">
         <strong>Found this useful?</strong>
         <a href="https://github.com/shubhankarreddy/python-mcq" target="_blank" rel="noopener">Star this repo on GitHub</a>
@@ -292,9 +322,105 @@ const labels = { p1:"P1 Basic", p2:"P2 Intermediate", p3:"P3 Advanced" };
 const levels = ["p1", "p2", "p3"];
 const letters = ["A", "B", "C", "D"];
 const state = { level:"p1", qi:0, answers:{}, selected:{}, correct:0, answered:0, streak:0 };
+const SUPABASE_URL = "https://imlgdikylqhstxltmxou.supabase.co";
+const SUPABASE_KEY = "sb_publishable_45WoVbtaoAfv-_ZyPTl_Fw_zADhv8SP";
+const QUIZ_META = { slug:"python", title:"Python MCQ" };
 
 function initLevel(level) {
   if (!state.answers[level]) state.answers[level] = new Array(questions[level].length).fill(null);
+}
+
+function plainText(html) {
+  const tmp = document.createElement("div");
+  tmp.innerHTML = html;
+  return (tmp.textContent || tmp.innerText || "").replace(/\s+/g, " ").trim();
+}
+
+function setSubmissionStatus(message, kind = "") {
+  const el = document.getElementById("submission-status");
+  if (!el) return;
+  el.textContent = message;
+  el.className = "submission-status" + (kind ? ` ${kind}` : "");
+}
+
+function resetSubmissionState() {
+  const btn = document.getElementById("btn-submit-attempt");
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = "Submit Score";
+  }
+  setSubmissionStatus("");
+}
+
+function currentAttemptSummary(level) {
+  const ans = state.answers[level];
+  const correct = ans.filter(a => a === "correct").length;
+  const wrong = ans.filter(a => a === "wrong").length;
+  const skipped = ans.filter(a => a === "skipped").length;
+  return { correct, wrong, skipped, total: ans.length };
+}
+
+function buildAnswerDetails(level) {
+  return questions[level].map((q, i) => {
+    const selectedIndex = state.selected[`${level}-${i}`];
+    return {
+      question_number: i + 1,
+      topic: q.topic,
+      status: state.answers[level][i],
+      selected_index: selectedIndex ?? null,
+      selected_answer: selectedIndex === undefined ? null : plainText(q.opts[selectedIndex]),
+      correct_index: q.ans,
+      correct_answer: plainText(q.opts[q.ans])
+    };
+  });
+}
+
+async function submitAttempt(event) {
+  event.preventDefault();
+  const name = document.getElementById("learner-name").value.trim();
+  if (name.length < 2) {
+    setSubmissionStatus("Please enter the learner name.", "err");
+    return;
+  }
+  const btn = document.getElementById("btn-submit-attempt");
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
+  setSubmissionStatus("Submitting score...");
+  const level = state.level;
+  const summary = currentAttemptSummary(level);
+  const payload = {
+    quiz_slug: QUIZ_META.slug,
+    quiz_title: QUIZ_META.title,
+    level_key: level,
+    level_label: labels[level],
+    learner_name: name,
+    learner_email: document.getElementById("learner-email").value.trim() || null,
+    learner_phone: document.getElementById("learner-phone").value.trim() || null,
+    batch: document.getElementById("learner-batch").value.trim() || null,
+    score: summary.correct,
+    total: summary.total,
+    correct_count: summary.correct,
+    wrong_count: summary.wrong,
+    skipped_count: summary.skipped,
+    answers: buildAnswerDetails(level),
+    page_url: window.location.href,
+    user_agent: navigator.userAgent
+  };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/quiz_attempts`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
+    btn.textContent = "Submitted";
+    setSubmissionStatus("Score submitted successfully.", "ok");
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = "Submit Score";
+    setSubmissionStatus("Could not submit. Check Supabase policy/API key and try again.", "err");
+    console.error("Supabase submission failed:", err);
+  }
 }
 
 function render() {
@@ -390,6 +516,7 @@ function showResults() {
   document.getElementById("score-ring").className = "score-ring " + (pct >= 80 ? "" : pct >= 60 ? "avg" : "low");
   document.getElementById("results-title").textContent = pct >= 80 ? "Interview Ready" : pct >= 60 ? "Good Progress" : "Needs More Practice";
   document.getElementById("results-msg").textContent = `You scored ${correct}/${total} (${pct}%)`;
+  resetSubmissionState();
   document.getElementById("btn-next-level").style.display = levels.indexOf(level) < levels.length - 1 ? "" : "none";
   document.getElementById(`tab-${level}`).classList.add("done");
   const stats = {};
