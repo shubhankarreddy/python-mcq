@@ -362,6 +362,8 @@ const SUPABASE_URL = "https://imlgdikylqhstxltmxou.supabase.co";
 const SUPABASE_KEY = "sb_publishable_45WoVbtaoAfv-_ZyPTl_Fw_zADhv8SP";
 const QUIZ_META = { slug:"python", title:"Python MCQ" };
 let learnerProfile = null;
+const submittedLevels = {};
+const submittingLevels = {};
 
 function initLevel(level) {
   if (!state.answers[level]) state.answers[level] = new Array(questions[level].length).fill(null);
@@ -504,16 +506,21 @@ function buildAnswerDetails(level) {
 }
 
 async function submitAttempt(event) {
-  event.preventDefault();
+  if (event) event.preventDefault();
   if (!learnerProfile || learnerProfile.name.length < 2) {
     setSubmissionStatus("Learner details are missing. Please refresh and enter details again.", "err");
     return;
   }
+  const level = state.level;
+  if (submittedLevels[level] || submittingLevels[level]) return;
+  submittingLevels[level] = true;
+  const form = document.getElementById("submission-form");
+  const title = form ? form.querySelector(".submission-title") : null;
   const btn = document.getElementById("btn-submit-attempt");
   btn.disabled = true;
   btn.textContent = "Submitting...";
-  setSubmissionStatus("Submitting score...");
-  const level = state.level;
+  if (title) title.textContent = "Submitting your score";
+  setSubmissionStatus("Submitting score automatically...");
   const summary = currentAttemptSummary(level);
   const payload = {
     quiz_slug: QUIZ_META.slug,
@@ -540,14 +547,18 @@ async function submitAttempt(event) {
       body: JSON.stringify(payload)
     });
     if (!res.ok) throw new Error(await res.text() || `HTTP ${res.status}`);
+    submittedLevels[level] = true;
     btn.textContent = "Submitted";
     setSubmissionStatus("Score submitted successfully.", "ok");
-    showSubmissionThankYou();
+    if (state.level === level) showSubmissionThankYou();
   } catch (err) {
     btn.disabled = false;
     btn.textContent = "Submit Score";
+    if (title) title.textContent = "Submit your score";
     setSubmissionStatus("Could not submit. Check Supabase policy/API key and try again.", "err");
     console.error("Supabase submission failed:", err);
+  } finally {
+    submittingLevels[level] = false;
   }
 }
 
@@ -661,6 +672,7 @@ function showResults() {
   document.getElementById("results-title").textContent = pct >= 80 ? "Interview Ready" : pct >= 60 ? "Good Progress" : "Needs More Practice";
   document.getElementById("results-msg").textContent = `You scored ${correct}/${total} (${pct}%)`;
   resetSubmissionState();
+  if (submittedLevels[level]) showSubmissionThankYou(); else submitAttempt();
   document.getElementById("btn-next-level").style.display = levels.indexOf(level) < levels.length - 1 ? "" : "none";
   document.getElementById(`tab-${level}`).classList.add("done");
   const stats = {};
@@ -676,6 +688,8 @@ function showResults() {
 function retryLevel() {
   const level = state.level;
   state.answers[level] = new Array(questions[level].length).fill(null);
+  delete submittedLevels[level];
+  delete submittingLevels[level];
   recalcGlobal();
   state.qi = 0;
   document.getElementById(`tab-${level}`).classList.remove("done");
