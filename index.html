@@ -358,8 +358,8 @@ const labels = { p1:"P1 Basic", p2:"P2 Intermediate", p3:"P3 Advanced" };
 const levels = ["p1", "p2", "p3"];
 const letters = ["A", "B", "C", "D"];
 const state = { level:"p1", qi:0, answers:{}, selected:{}, correct:0, answered:0, streak:0 };
-const SUPABASE_URL = "https://imlgdikylqhstxltmxou.supabase.co";
-const SUPABASE_KEY = "sb_publishable_45WoVbtaoAfv-_ZyPTl_Fw_zADhv8SP";
+const SUPABASE_URL = "https://mwcvypmdasyppblyorvy.supabase.co";
+const SUPABASE_KEY = "sb_publishable_5H0sAR5q01H4pqgAjfD6jA_A7I9Xj_8";
 const QUIZ_META = { slug:"python", title:"Python MCQ" };
 let learnerProfile = null;
 const submittedLevels = {};
@@ -561,7 +561,7 @@ async function submitAttempt(event) {
   try {
     let res = await fetch(`${SUPABASE_URL}/rest/v1/quiz_attempts`, {
       method: "POST",
-      headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+      headers: { apikey: SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", Prefer: "return=minimal" },
       body: JSON.stringify(payload)
     });
     if (!res.ok) {
@@ -569,7 +569,7 @@ async function submitAttempt(event) {
       if (/PGRST204|schema cache|course|city|is_test/i.test(message)) {
         res = await fetch(`${SUPABASE_URL}/rest/v1/quiz_attempts`, {
           method: "POST",
-          headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json", Prefer: "return=minimal" },
+          headers: { apikey: SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", Prefer: "return=minimal" },
           body: JSON.stringify(legacyPayload)
         });
       }
